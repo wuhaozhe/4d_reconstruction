@@ -13,7 +13,7 @@ class SequenceEncoder(object):
             process = (
                 ffmpeg
                 .input('pipe:', format='rawvideo', pix_fmt='gray16le', framerate=30, s='{}x{}'.format(image_size, image_size))
-                .output(os.path.join(save_path, "_{}.nut".format(i)), pix_fmt='gray16le', vcodec='ffv1', r=30, loglevel="quiet")
+                .output(save_path + "_{}.nut".format(i), pix_fmt='gray16le', vcodec='ffv1', r=30, loglevel="quiet")
                 .overwrite_output()
                 .run_async(pipe_stdin=True)
             )
@@ -21,7 +21,7 @@ class SequenceEncoder(object):
 
     def close(self):
         for i in range(3):
-            self.stream_list[i].close()
+            self.stream_list[i].stdin.close()
             self.stream_list[i].wait()
 
     def delete_recording(self):

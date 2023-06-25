@@ -22,13 +22,3 @@ def vertex2image(vertex, pad = 0.05):
         image_list.append(saved_image)
     
     return image_list
-
-# def image2vertex(image_list, vertex_num):
-#     vertex = np.zeros((vertex_num, 3), dtype = np.float32)
-#     for i in range(3):
-#         img = image_list[i].reshape(-1)
-#         min_coord = struct.unpack('f', struct.pack('HH', img[0], img[1]))[0]
-#         max_coord = struct.unpack('f', struct.pack('HH', img[2], img[3]))[0]
-#         vertex_quant = img[4: 4 + vertex_num]
-#         vertex[:, i] = (vertex_quant.astype(np.float32) / 2**16) * (max_coord - min_coord) + min_coord
-#     return vertex
