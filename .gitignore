@@ -1,2 +1,5 @@
 test_data/
 test.py
+test.sh
+BFM/
+__pycache__/
