@@ -27,4 +27,5 @@ def decode_nut_to_np(video_path, vertex_num):
         if i == 0:
             vertex_array = np.zeros((len(video), vertex_num, 3), dtype = np.float32)
         vertex_array[:, :, i] = (video_array / 2**16) * (np.expand_dims(max_coord_array, axis = 1) - np.expand_dims(min_coord_array, axis = 1)) + np.expand_dims(min_coord_array, axis = 1)
+        del out, _
     return vertex_array
