@@ -120,7 +120,7 @@ def _depth_fitting(src_face_model, lm_3d_idx, gt_lm_3d, cam_list, diff_render, g
     loss.backward()
 
     if iter_idx % 50 == 0:
-        cv2.imwrite('test1.png', color_image[1].detach().cpu().numpy() * 255)
+        # cv2.imwrite('test1.png', color_image[1].detach().cpu().numpy() * 255)
         for key, value in loss_dict.items():
             print(key, value, end=' ')
         print()
@@ -138,4 +138,114 @@ def depth_fitting_init(src_face_model, optimizer, lm_3d_idx, gt_lm_3d, cam_list,
     for i in range(iter):
         optimizer.zero_grad()
         _depth_fitting(src_face_model, lm_3d_idx, gt_lm_3d, cam_list, diff_render, gt_depth_img_list, gt_color_img_list, pose_list, loss_weight, i)
+        optimizer.step()
+
+
+tmp_dict = {}
+def _depth_fitting_singlecam(src_face_model, lm_3d_idx, gt_lm_3d, cam_pinhole, diff_render, gt_depth_image, gt_color_image, loss_weight, iter_idx):
+    global tmp_dict
+    deformed_vertex = src_face_model()
+    face_color = src_face_model.get_illuminated_color(deformed_vertex.unsqueeze(0))
+    face_mask = src_face_model.face_mask.unsqueeze(0).unsqueeze(2).repeat(1, 1, 1).float()
+    deformed_vertex_ndc = utils.points_2_ndc_space(deformed_vertex, cam_pinhole).unsqueeze(0)
+    depth = deformed_vertex_ndc[:, :, 2].unsqueeze(2)
+    # 后面记得加上texture color
+    _, rast_image, pred_mask_image = diff_render(deformed_vertex_ndc, src_face_model.face_buf.contiguous(),
+        [cam_pinhole.height, cam_pinhole.width], torch.cat((depth, face_mask, face_color), dim = 2).contiguous()
+    )
+    pred_depth_image = rast_image[:, 0]     # shape B * H * W
+    # # weight_image = rast_image[:, 1]     # shape B * H * W
+    face_mask_image = (1 - rast_image[:, 1]).bool()  # shape B * H * W
+    color_image = rast_image[:, 2:]
+    color_image = torch.flip(color_image.permute(0, 2, 3, 1), dims = [3]) / 255
+
+    gt_depth_image = gt_depth_image.unsqueeze(0)    # shape B * H * W
+    gt_mask_image = (gt_depth_image > 0)
+    gt_color_image = gt_color_image.unsqueeze(0)    # shape B * H * W * 3
+
+
+    # # cv2.imwrite('test.png', weight_image[1].detach().cpu().numpy() * 128)
+    mask_and = torch.logical_and(pred_mask_image.squeeze(), gt_mask_image)
+
+    
+    # 比较大的问题是3dmm嘴唇不够厚，要通过nicp解决
+    loss = 0.0
+    loss_dict = {}
+
+
+    # 要加一个相邻帧的正则项，minimize nicp的offset距离
+    if 'lm_loss' in loss_weight:
+        pred_lm_3d = src_face_model(apply_offset = False)[lm_3d_idx]
+        lm_loss = torch.sum((pred_lm_3d[gt_lm_3d[:, 2] > 0.1] - gt_lm_3d[gt_lm_3d[:, 2] > 0.1]).pow(2)) * loss_weight['lm_loss']
+        loss += lm_loss
+        loss_dict['lm_loss'] = lm_loss.item()
+    if 'rgb_loss' in loss_weight:
+        color_diff = torch.sqrt(torch.sum(torch.pow((gt_color_image - color_image), 2), dim = 3))[mask_and]
+        rgb_loss = torch.mean(utils.geman_mcclure(color_diff, 0.1)) * loss_weight['rgb_loss']
+        loss += rgb_loss
+        loss_dict['rgb_loss'] = rgb_loss.item()
+    if 'depth_loss' in loss_weight:
+        mask_tmp = torch.logical_and(face_mask_image, mask_and)
+        diff = (pred_depth_image - gt_depth_image)[mask_tmp]
+        depth_loss = torch.mean(utils.geman_mcclure(diff, 0.002)) * loss_weight['depth_loss']
+        loss += depth_loss
+        loss_dict['depth_loss'] = depth_loss.item()
+    if 'reg_loss' in loss_weight:
+        reg_loss = src_face_model.regularization() * loss_weight['reg_loss']
+        loss += reg_loss
+        loss_dict['reg_loss'] = reg_loss.item()
+    if 'edge_loss' in loss_weight:
+        if iter_idx == 0:
+            bfm_vertex = src_face_model(apply_offset = False)
+            bfm_edge = src_face_model.edge
+            bfm_edge_direction = bfm_vertex[bfm_edge[:, 0]] - bfm_vertex[bfm_edge[:, 1]]
+            tmp_dict['e'] = bfm_edge.detach()
+            tmp_dict['d'] = bfm_edge_direction.detach()
+        deform_edge_direction = deformed_vertex[tmp_dict['e'][:, 0]] - deformed_vertex[tmp_dict['e'][:, 1]]
+        edge_loss = torch.sum((deform_edge_direction - tmp_dict['d']).pow(2)) * loss_weight['edge_loss']
+        loss += edge_loss
+        loss_dict['edge_loss'] = edge_loss.item()
+        # print('edge', loss_dict['edge_loss'])
+    if 'laplacian_loss' in loss_weight:
+        # 参考权重为10(计算deformed vertex和3dmm的laplacian坐标距离)
+        if iter_idx == 0:
+            bfm_vertex = src_face_model(apply_offset = False)
+            bfm_edge = src_face_model.edge
+            laplacian_matrix = utils.norm_laplacian(bfm_vertex, bfm_edge).detach()
+            laplacian_matrix.requires_grad = False
+            bfm_laplacian_ver = torch.sparse.mm(laplacian_matrix, bfm_vertex).detach()
+            tmp_dict['l_mat'] = laplacian_matrix.detach()
+            tmp_dict['l_v'] = bfm_laplacian_ver.detach()
+        deform_laplacian_ver = torch.sparse.mm(tmp_dict['l_mat'], deformed_vertex)
+        laplacian_loss = torch.sum((deform_laplacian_ver - tmp_dict['l_v']).pow(2)) * loss_weight['laplacian_loss']
+        loss += laplacian_loss
+        loss_dict['laplacian_loss'] = laplacian_loss.item()
+        # print('lap', loss_dict['laplacian_loss'])
+    if 'offset_reg_loss' in loss_weight:
+        # 限制offset变动的幅度
+        offset_reg_loss = torch.sum((src_face_model.nicp_trans).pow(2)) * loss_weight['offset_reg_loss']
+        loss += offset_reg_loss
+        loss_dict['offset_reg_loss'] = offset_reg_loss.item()
+
+    loss.backward()
+
+    if iter_idx % 50 == 0:
+        # cv2.imwrite('test_1.png', color_image[0].detach().cpu().numpy() * 255)
+        for key, value in loss_dict.items():
+            print(key, value, end=' ')
+        print()
+
+def depth_fitting_tune_singlecam(src_face_model, optimizer_coeff, optimizer_nicp, lm_3d_idx, gt_lm_3d, cam_pinhole, diff_render, gt_depth_image, gt_color_image, loss_weight, iter):
+    for i in range(iter):
+        optimizer_coeff.zero_grad()
+        optimizer_nicp.zero_grad()
+        _depth_fitting_singlecam(src_face_model, lm_3d_idx, gt_lm_3d, cam_pinhole, diff_render, gt_depth_image, gt_color_image, loss_weight, i)
+        optimizer_nicp.step()
+        optimizer_coeff.step()
+
+def depth_fitting_init_singlecam(src_face_model, optimizer, lm_3d_idx, gt_lm_3d, cam_pinhole, diff_render, gt_depth_image, gt_color_image, loss_weight, iter):
+    
+    for i in range(iter):
+        optimizer.zero_grad()
+        _depth_fitting_singlecam(src_face_model, lm_3d_idx, gt_lm_3d, cam_pinhole, diff_render, gt_depth_image, gt_color_image, loss_weight, i)
         optimizer.step()
