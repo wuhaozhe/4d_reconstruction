@@ -33,6 +33,12 @@ For one-camera reconstruction, run
 python singlecam_reconstruction.py --file_path ../test_data/000337 --save_path ../test_data/000337_save --faces_path ../test_data/faces.pkl
 `
 
+After reconstruction, we leverage low pass filter to smooth the reconstructed results. The code is provided in `smooth_4d.py`. For example, run
+
+`
+python smooth_4d.py --file_path ../test_data/000337 --out_path ../test_data/000337_filt
+`
+
 ### Mesh Sequence Compression
 ------
 Our mesh compression algorithm compress 3D mesh sequence with the same topology. Here we give an example of a compresses vertices to video files.
@@ -59,6 +65,9 @@ vertices = decode_nut_to_np('./test_data/test', number_of_vertex)
 With the recorded MKV files of azure kinect, we decode it to nut files, mp4 files, and wav files. The nut files records depth video, mp4 files record RGB video, wav files record audio.
 The preprocess code is provided in `process_mkv.py`.
 
+### Visualize nut files
+------
+We visualize nut files in `reconstruction/visualize_nut.py`. Run `python visualize_nut.py --file_path {} --out_path {}` provides the visualization mp4 video. See `reconstruction/visualize.sh` for example.
 
 ### License and Citation
 ------
