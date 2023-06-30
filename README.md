@@ -54,6 +54,11 @@ from mesh_compression.decode import decode_nut_to_np
 vertices = decode_nut_to_np('./test_data/test', number_of_vertex)
 ```
 
+### Preprocess Azure Kinect RGBD files
+------
+With the recorded MKV files of azure kinect, we decode it to nut files, mp4 files, and wav files. The nut files records depth video, mp4 files record RGB video, wav files record audio.
+The preprocess code is provided in `process_mkv.py`.
+
 
 ### License and Citation
 ------
