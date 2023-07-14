@@ -69,9 +69,32 @@ The preprocess code is provided in `process_mkv.py`.
 ------
 We visualize nut files in `reconstruction/visualize_nut.py`. Run `python visualize_nut.py --file_path {} --out_path {}` provides the visualization mp4 video. See `reconstruction/visualize.sh` for example.
 
+### Baseline Methods
+------
+
+### MMFace4D dataset download
+------
+For dataset application, please contact `wuhz19@mails.tsinghua.edu.cn`, we only accept academic use of the dataset.
+
+We provide for parts of the dataset: the original depth video (in `depth` folder), the reconstructed 4D sequence (in `sequence` folder), the facial landmarks (in `landmark.zip`), the camera intrinsics (in `intrinsics.zip`), and the speech audio (in `audio.zip`).
+
+To decode depth frame from depth videos, you can leverage the following code:
+
+```python
+import ffmpeg
+import numpy as np
+out, _ = (
+    ffmpeg
+    .input(depth_path)
+    .output('pipe:', format='rawvideo', pix_fmt='gray16le', loglevel="quiet")
+    .run(capture_stdout=True)
+)
+video = np.frombuffer(out, np.uint16).reshape([-1, 1080, 1920]).copy()
+```
+
+
 ### License and Citation
 ------
-Cite
 ```
 @article{wu2023mmface4d,
   title={MMFace4D: A Large-Scale Multi-Modal 4D Face Dataset for Audio-Driven 3D Face Animation},
