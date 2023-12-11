@@ -1,5 +1,5 @@
 ## MMFace4D: A Large-Scale Multi-Modal 4D Face Dataset for Audio-Driven 3D Face Animation
-------
+
 Haozhe Wu, Jia Jia, Junliang Xing, Hongwei Xu, Xiangyuan Wang, Jelo Wang
 [[Paper]](https://arxiv.org/abs/2303.09797)
 
@@ -8,8 +8,8 @@ Haozhe Wu, Jia Jia, Junliang Xing, Hongwei Xu, Xiangyuan Wang, Jelo Wang
 
 This repo gives the official code of the paper MMFace4D. The source code of 4D reconstruction, mesh sequence compression, and face animation baseline is given.
 
-### MMFace4D Dataset Structure
 ------
+### MMFace4D Dataset Structure
 
 We give the camera intrinsics, facial landmarks, speech audio, depth sequence, and 3D reconstructed sequence in the MMFace4D dataset. Each part is organized as follows:
 
@@ -53,8 +53,8 @@ from mesh_compression.decode import decode_nut_to_np
 vertices = decode_nut_to_np('./test_data/test', number_of_vertex)
 ```
 
-### Environments
 ------
+### Environments
 
 For offline render, we need to install OSMesa, please follow the instructions of [pyrender](https://pyrender.readthedocs.io/en/latest/install/index.html)
 
@@ -63,8 +63,8 @@ For the differential render, we leverage nvdiffrast, please follow the instructi
 Afterwards, run the other environments with 
 `pip install -r requirements.txt`
 
-### 4D Reconstruction
 ------
+### 4D Reconstruction
 
 The reconstruction code is implemented in the `reconstruction` folder. We respectively provide the code of reconstructing 3D faces from three RGBD cameras and one RGBD camera.
 
@@ -85,18 +85,18 @@ python smooth_4d.py --file_path ../test_data/000337 --out_path ../test_data/0003
 `
 
 
-### Preprocess Azure Kinect RGBD files
 ------
+### Preprocess Azure Kinect RGBD files
 With the recorded MKV files of azure kinect, we decode it to nut files, mp4 files, and wav files. The nut files records depth video, mp4 files record RGB video, wav files record audio.
 The preprocess code is provided in `process_mkv.py`. 
 For people who wants to collect your own data, you can use this code for reference.
 
-### Visualize 3D Sequences
 ------
+### Visualize 3D Sequences
 We visualize nut files in `reconstruction/visualize_nut.py`. Run `python visualize_nut.py --file_path {} --out_path {}` provides the visualization mp4 video. See `reconstruction/visualize.sh` for example.
 
-### License and Citation
 ------
+### License and Citation
 ```
 @article{wu2023mmface4d,
   title={MMFace4D: A Large-Scale Multi-Modal 4D Face Dataset for Audio-Driven 3D Face Animation},
