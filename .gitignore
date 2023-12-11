@@ -3,3 +3,4 @@ test.py
 test.sh
 BFM/
 __pycache__/
+baseline/*.pkl
