@@ -1,1 +1,1 @@
-python visualize_nut.py --file_path ../test_data/000337 --out_path ../test_data/out
+python visualize_nut.py --file_path ../test_data/reconstruct_filt --out_path ../test_data/out

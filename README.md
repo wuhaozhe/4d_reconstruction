@@ -8,6 +8,8 @@ Haozhe Wu, Jia Jia, Junliang Xing, Hongwei Xu, Xiangyuan Wang, Jelo Wang
 
 This repo gives the official code of the paper MMFace4D. The source code of 4D reconstruction, mesh sequence compression, and face animation baseline is given.
 
+*Notice that the reconstructed mesh sequences still have noise, and the fusion of multiview camera data is not good enough, we welcome researchers to provide a better version of 3D reconstruction.*
+
 ------
 ### MMFace4D Dataset Structure
 
@@ -52,6 +54,8 @@ encoder.close()
 from mesh_compression.decode import decode_nut_to_np
 vertices = decode_nut_to_np('./test_data/test', number_of_vertex)
 ```
+
+**Example Data**: We give example data in `test_data` folder, the `reconstruct_filt_{0,1,2}.nut` files are 3D reconstructed sequence files. The files with 000337 prefix are raw data (camera intrinsics, audio, landmarks, and Depth Sequence.)
 
 ------
 ### Environments
