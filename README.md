@@ -56,12 +56,17 @@ vertices = decode_nut_to_np('./test_data/test', number_of_vertex)
 ------
 ### Environments
 
-For offline render, we need to install OSMesa, please follow the instructions of [pyrender](https://pyrender.readthedocs.io/en/latest/install/index.html)
+- For offline render, we need to install OSMesa, please follow the instructions of [pyrender](https://pyrender.readthedocs.io/en/latest/install/index.html)
 
-For the differential render, we leverage nvdiffrast, please follow the instructions of [nvdiffrast](https://github.com/NVlabs/nvdiffrast)
+- For the differential render, we leverage nvdiffrast, please follow the instructions of [nvdiffrast](https://github.com/NVlabs/nvdiffrast)
 
-Afterwards, run the other environments with 
+- Afterwards, run the other environments with 
 `pip install -r requirements.txt`
+
+- Same as the instructions of [Deep 3D Face Reconstruction](https://github.com/microsoft/Deep3DFaceReconstruction).
+  - Download the Basel Face Model. Due to the license agreement of Basel Face Model, you have to download the BFM09 model after submitting an application on its [home page](https://faces.dmi.unibas.ch/bfm/main.php?nav=1-2&id=downloads). After getting the access to BFM data, download "01_MorphableModel.mat" and put it into ./deep_3drecon/BFM subfolder.
+  - Download Download the Expression Basis provided by [Guo et al](https://github.com/Juyong/3DFace). You can find a link named "CoarseData" in the first row of Introduction part in their repository. Download and unzip the Coarse_Dataset.zip. Put "Exp_Pca.bin" into ./deep_3drecon/BFM subfolder. The expression basis are constructed using [Facewarehouse](http://kunzhou.net/zjugaps/facewarehouse/) data and transferred to BFM topology.
+  - Leverage the [transferBFM09](https://github.com/microsoft/Deep3DFaceReconstruction/blob/master/utils.py) function of [Deep3DFaceReconstruction](https://github.com/microsoft/Deep3DFaceReconstruction/tree/master) repo to obtain "BFM/BFM_model_front.mat".
 
 ------
 ### 4D Reconstruction
