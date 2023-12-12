@@ -1,12 +1,8 @@
 test_data/
 test.py
 test.sh
-BFM/
-!BFM/BFM_exp_idx.mat
-!BFM/BFM_front_idx.mat
-!BFM/facemodel_info.mat
-!BFM/select_vertex_id.mat
-!BFM/similarity_Lm3D_all.mat
-!BFM/std_exp.txt
+BFM/01_MorphableModel.mat
+BFM/BFM_model_front.mat
+BFM/Exp_Pca.bin
 __pycache__/
 baseline/*.pkl
