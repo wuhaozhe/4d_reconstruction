@@ -21,6 +21,8 @@ We give the camera intrinsics, facial landmarks, speech audio, depth sequence, a
 
 **Speech Audio**: The speech audio is saved as wav format. Notice that for one recording, we have three videos from three perspectives, but we only have one speech audio.
 
+**Sentence Emotion**: Neutral sentence has prefix 00, happy sentence has prefix 21, angry sentence has prefix 22, sad sentence has prefix 23, surprise sentence has prefix 24, fear sentence has prefix 25, disgust sentence has prefix 26.
+
 **Depth Sequence**: the depth video is compressed as nut format with uint16. We can leverage ffmpeg to decode it. Here we give an example of decoding:
 
 ```python
